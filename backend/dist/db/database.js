@@ -26,15 +26,17 @@ const initDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
         return pool;
     }
     // Create a connection pool
-    pool = promise_1.default.createPool({
-        host: process.env.DB_HOST || 'localhost',
+    const MYSQL_CONFIG = {
+        host: process.env.DB_HOST || 'caboose.proxy.rlwy.net',
         user: process.env.DB_USER || 'root',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'task_manager',
+        password: process.env.DB_PASSWORD || 'pGHUGULgUogWbrfozMrDhnnVagRUNFqH',
+        database: process.env.DB_NAME || 'railway',
+        port: process.env.DB_PORT || 29933,
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0
-    });
+      };
+      
     try {
         // Create tables if they don't exist
         yield pool.execute(`
