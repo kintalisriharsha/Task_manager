@@ -25,7 +25,8 @@ const MYSQL_CONFIG = {
   database: process.env.DB_NAME || 'task_manager',
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  port:3306
 };
 
 // Ensure the database directory exists for SQLite
