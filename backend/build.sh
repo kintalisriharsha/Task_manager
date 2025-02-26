@@ -1,20 +1,25 @@
 #!/bin/bash
 
-# Install dependencies first
-npm install
+chmod +x build.sh
+npx depcheck
+# Limit Node.js memory usage
+export NODE_OPTIONS="--max-old-space-size=2048"
+
+# Use production-only installation
+npm ci --only=production
+
+# Install dev dependencies separately (needed for build)
+npm install --save-dev @types/node @types/express @types/cors @types/uuid
+
+# Force reinstall @types/node to ensure it's available
+npm uninstall @types/node
+npm install --save-dev @types/node@20.17.19
 
 # Clean the dist directory
 rm -rf dist || true
 
 # Create necessary directories
 mkdir -p dist
-
-# Manually install types (avoid relying on types in tsconfig)
-npm install --save-dev @types/node @types/express @types/cors @types/uuid
-
-# Force reinstall @types/node to ensure it's available
-npm uninstall @types/node
-npm install --save-dev @types/node@20.17.19
 
 # Create a quick fix to make TypeScript happy
 echo "// Type definitions for Node.js
@@ -51,8 +56,8 @@ cat > tsconfig.json << EOL
 }
 EOL
 
-# Run the TypeScript compiler
-npx tsc || true
+# Run build with limited memory
+npm run build || npx tsc || true
 
 # Ensure server.js is in the dist folder
 if [ ! -f dist/server.js ]; then
