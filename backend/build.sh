@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Skip build process in production environment on Railway
+if [ "$RAILWAY_ENVIRONMENT_NAME" == "production" ]; then
+  echo "Skipping build.sh in production (handled by Railway)"
+  exit 0
+fi
+
 chmod +x build.sh
 npx depcheck
 # Limit Node.js memory usage
