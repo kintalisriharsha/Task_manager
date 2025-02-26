@@ -4,7 +4,7 @@
   "description": "Backend for Task Management Application",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "bash ./build.sh",
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
     "postinstall": "npm run build"
