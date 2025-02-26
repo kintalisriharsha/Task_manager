@@ -1,0 +1,51 @@
+/* src/components/CategorySlider/CategorySlider.css */
+
+.category-slider-container {
+  margin-bottom: 20px;
+}
+
+.category-tabs {
+  display: flex;
+  background-color: transparent;
+  border-bottom: 1px solid #eee;
+  overflow: hidden;
+}
+
+.category-tab {
+  padding: 12px 0;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  margin-right: 30px;
+  color: #888;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.category-tab.active {
+  color: #5a6eee;
+  font-weight: 600;
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #5a6eee;
+  transition: all 0.3s ease;
+}
+
+.category-tab.active .tab-indicator {
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .category-tab {
+    padding: 10px 0;
+    font-size: 13px;
+    margin-right: 15px;
+  }
+}

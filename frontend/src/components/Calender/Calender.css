@@ -1,0 +1,101 @@
+/* src/components/Calender/Calender.css */
+
+.calendar {
+  font-size: 14px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+.calendar-title {
+  font-weight: 600;
+  color: #333;
+}
+
+.calendar-nav {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.calendar-nav:hover {
+  color: #333;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+  border-top: 1px solid #eee;
+}
+
+.weekday {
+  color: #888;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 5px 0;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 10px 0;
+}
+
+.calendar-day {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+}
+
+.calendar-day:hover:not(.empty) {
+  background-color: black;
+  color:white;
+}
+
+.calendar-day.empty {
+  cursor: default;
+}
+
+.calendar-day.today {
+  background-color: #5a6eee;
+  color: white;
+  font-weight: 600;
+}
+
+.calendar-day.has-task {
+  color:black;
+  font-weight: 600;
+  position: relative;
+}
+
+.calendar-day.has-task:after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  width: 4px;
+  height: 4px;
+  background-color: #5a6eee;
+  border-radius: 50%;
+}

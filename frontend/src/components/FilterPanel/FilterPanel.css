@@ -1,0 +1,107 @@
+/* src/components/FilterPanel/FilterPanel.css */
+
+.filter-panel {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 280px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    padding: 16px;
+    z-index: 1000;
+    border: 1px solid #eaeaea;
+  }
+  
+  .filter-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .filter-panel-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .close-filter-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: color 0.2s ease;
+  }
+  
+  .close-filter-btn:hover {
+    color: #333;
+  }
+  
+  .filter-section {
+    margin-bottom: 16px;
+  }
+  
+  .filter-section h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .filter-section select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #333;
+    background-color: #fff;
+    transition: border-color 0.2s ease;
+  }
+  
+  .filter-section select:focus {
+    border-color: #5a6eee;
+    outline: none;
+  }
+  
+  .filter-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .reset-filter-btn {
+    padding: 8px 16px;
+    background-color: transparent;
+    border: 1px solid #5a6eee;
+    color: #5a6eee;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .reset-filter-btn:hover {
+    background-color: #5a6eee;
+    color: white;
+  }
+  
+  @media (max-width: 768px) {
+    .filter-panel {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      right: 20px;
+      width: auto;
+    }
+  }

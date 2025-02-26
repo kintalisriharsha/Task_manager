@@ -1,0 +1,126 @@
+/* src/components/TaskList/TaskList.css */
+
+.task-column {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.task-column-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.task-column-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.task-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+}
+
+.task-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.task-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.task-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.task-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.task-list::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+.task-list-loader,
+.task-list-error,
+.task-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  min-height: 200px;
+  border: 1px solid #f0f0f0;
+}
+
+.task-list-loader .loader-spinner {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+}
+
+.task-list-loader p {
+  color: #666;
+  font-weight: 500;
+}
+
+.task-list-error i {
+  font-size: 36px;
+  color: #ea5455;
+  margin-bottom: 16px;
+}
+
+.task-list-error p {
+  color: #666;
+  font-weight: 500;
+}
+
+.task-list-empty .empty-illustration {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #f0f2f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.task-list-empty i {
+  font-size: 24px;
+  color: #aab3ca;
+}
+
+.task-list-empty h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.task-list-empty p {
+  margin: 0;
+  color: #888;
+  font-weight: 400;
+}

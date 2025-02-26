@@ -1,0 +1,190 @@
+/* src/components/TaskForm/TaskForm.css */
+
+.task-form-container {
+  background-color: white;
+  border-radius: 12px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #eaeaea;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  max-height: calc(100vh - 40px);
+  overflow: hidden; /* Contain everything within boundaries */
+}
+
+.task-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eaeaea;
+  flex-shrink: 0;
+}
+
+.task-form-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+.task-form {
+  padding: 16px;
+  overflow-y: auto;
+  flex-grow: 1;
+  max-height: calc(100vh - 130px); /* Limit height and ensure scrolling */
+}
+
+.form-group {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #333;
+  transition: border-color 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #5a6eee;
+  outline: none;
+}
+
+input.error,
+textarea.error,
+select.error {
+  border-color: #ea5455;
+}
+
+.error-message {
+  color: #ea5455;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.form-error-message {
+  color: #ea5455;
+  font-size: 14px;
+  margin-bottom: 16px;
+  padding: 10px;
+  background-color: rgba(234, 84, 85, 0.1);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.deadline-container {
+  display: flex;
+  gap: 10px;
+}
+
+.deadline-container input {
+  flex: 1;
+}
+
+.assignee-selection {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.assignee-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.assignee-avatar:first-child {
+  background-color: #5a6eee;
+}
+
+.assignee-avatar:nth-child(2) {
+  background-color: #ff9f43;
+}
+
+.add-assignee {
+  background-color: #f5f5f5;
+  color: #888;
+  border: 1px dashed #ddd;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #121212;
+  color: white;
+  border: none;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+}
+
+.submit-button:hover {
+  background-color: #000;
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .deadline-container {
+    flex-direction: column;
+  }
+}
