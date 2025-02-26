@@ -1,17 +1,19 @@
-// Update src/index.ts to properly import and use your server.ts logic
+// src/index.ts
+
 import dotenv from 'dotenv';
 dotenv.config();
 
 import app from './app';
 import { TaskModel } from './models/taskModel';
-import { initDatabase } from './db/database';
+import { connectDatabase } from './db/database';
 
 const PORT = process.env.PORT || 5000;
 
 // Initialize database and start server
 (async () => {
   try {
-    await initDatabase();
+    // Connect to the database first
+    await connectDatabase();
     console.log('Database initialized successfully');
 
     // Check for timeouts every minute
@@ -23,7 +25,19 @@ const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
+
+    // Handle graceful shutdown
+    process.on('SIGINT', async () => {
+      console.log('Shutting down server...');
+      process.exit(0);
+    });
+
+    process.on('SIGTERM', async () => {
+      console.log('Shutting down server...');
+      process.exit(0);
+    });
   } catch (error) {
     console.error('Failed to start server:', error);
+    process.exit(1);
   }
 })();

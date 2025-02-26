@@ -63,15 +63,20 @@ const rowToStreamData = (row: any): StreamData => {
   };
 };
 
+// Format date for MySQL (YYYY-MM-DD HH:MM:SS)
+const formatDateForMySQL = (date: Date): string => {
+  return date.toISOString().slice(0, 19).replace('T', ' ');
+};
+
 export const TaskModel = {
   async findAll(): Promise<Task[]> {
     // Get all tasks
     const taskRows = await query(
       'SELECT * FROM tasks ORDER BY created_at DESC'
-    );
+    ) as Record<string, any>[];
     
     // Get all stream data
-    const streamRows = await query('SELECT * FROM stream_data');
+    const streamRows = await query('SELECT * FROM stream_data') as Record<string, any>[];
     
     // Map stream data by task_id for easy lookup
     interface StreamDataMap {
@@ -97,13 +102,13 @@ export const TaskModel = {
   
   async findById(id: string): Promise<Task | undefined> {
     // Get task
-    const rows = await query('SELECT * FROM tasks WHERE id = ?', [id]);
+    const rows = await query('SELECT * FROM tasks WHERE id = ?', [id]) as Record<string, any>[];
     if (rows.length === 0) return undefined;
     
     const task = rowToTask(rows[0]);
     
     // Get stream data if exists
-    const streamRows = await query('SELECT * FROM stream_data WHERE task_id = ?', [id]);
+    const streamRows = await query('SELECT * FROM stream_data WHERE task_id = ?', [id]) as Record<string, any>[];
     if (streamRows.length > 0) {
       task.streamData = rowToStreamData(streamRows[0]);
     }
@@ -123,6 +128,15 @@ export const TaskModel = {
       isTimeout: false
     };
     
+    // Format dates for MySQL
+    const createdAtFormatted = formatDateForMySQL(newTask.createdAt);
+    const updatedAtFormatted = formatDateForMySQL(newTask.updatedAt);
+    let deadlineFormatted = null;
+    
+    if (newTask.deadline) {
+      deadlineFormatted = formatDateForMySQL(newTask.deadline);
+    }
+    
     // Insert task
     await query(
       `INSERT INTO tasks (id, title, description, status, created_at, updated_at, duration, deadline, is_timeout) 
@@ -132,10 +146,10 @@ export const TaskModel = {
         newTask.title,
         newTask.description,
         newTask.status,
-        newTask.createdAt.toISOString(),
-        newTask.updatedAt.toISOString(),
+        createdAtFormatted,
+        updatedAtFormatted,
         newTask.duration,
-        newTask.deadline ? newTask.deadline.toISOString() : null,
+        deadlineFormatted,
         0 // is_timeout false
       ]
     );
@@ -181,11 +195,11 @@ export const TaskModel = {
     
     if ('deadline' in taskData) {
       updates.push('deadline = ?');
-      values.push(taskData.deadline ? taskData.deadline.toISOString() : null);
+      values.push(taskData.deadline ? formatDateForMySQL(taskData.deadline) : null);
     }
     
     updates.push('updated_at = ?');
-    values.push(updatedTask.updatedAt.toISOString());
+    values.push(formatDateForMySQL(updatedTask.updatedAt));
     
     // Add the ID for the WHERE clause
     values.push(id);
@@ -213,7 +227,8 @@ export const TaskModel = {
   },
   
   async checkTimeouts(): Promise<void> {
-    const now = new Date().toISOString();
+    const now = new Date();
+    const nowFormatted = formatDateForMySQL(now);
     
     // Find tasks that should be marked as timeout
     await query(
@@ -222,7 +237,7 @@ export const TaskModel = {
        WHERE deadline < ? 
        AND status != ? 
        AND is_timeout = 0`,
-      [TaskStatus.TIMEOUT, now, now, TaskStatus.DONE]
+      [TaskStatus.TIMEOUT, nowFormatted, nowFormatted, TaskStatus.DONE]
     );
   },
   
@@ -230,7 +245,7 @@ export const TaskModel = {
     const rows = await query(
       'SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC',
       [status]
-    );
+    ) as Record<string, any>[];
     
     // Map rows to Task objects
     const tasks = rows.map(rowToTask);
@@ -240,7 +255,7 @@ export const TaskModel = {
       const streamRows = await query(
         'SELECT * FROM stream_data WHERE task_id = ?',
         [task.id]
-      );
+      ) as Record<string, any>[];
       
       if (streamRows.length > 0) {
         task.streamData = rowToStreamData(streamRows[0]);
@@ -260,6 +275,8 @@ export const TaskModel = {
     
     // Create new stream data
     const streamId = uuidv4();
+    const startedAtFormatted = formatDateForMySQL(streamData.startedAt);
+    
     await query(
       `INSERT INTO stream_data (id, task_id, name, viewer_count, started_at)
        VALUES (?, ?, ?, ?, ?)`,
@@ -268,7 +285,7 @@ export const TaskModel = {
         taskId,
         streamData.name,
         streamData.viewerCount,
-        streamData.startedAt.toISOString()
+        startedAtFormatted
       ]
     );
     
@@ -296,8 +313,8 @@ export const TaskModel = {
   },
   
   async getTotalDuration(): Promise<number> {
-    const result = await query('SELECT SUM(duration) as total FROM tasks');
-    return result[0].total || 0;
+    const result = await query('SELECT SUM(duration) as total FROM tasks') as Array<{total: number}>;
+    return result[0]?.total || 0;
   },
   
   async getTasksDueToday(): Promise<Task[]> {
@@ -306,25 +323,29 @@ export const TaskModel = {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
+    const todayFormatted = formatDateForMySQL(today);
+    const tomorrowFormatted = formatDateForMySQL(tomorrow);
+    
     const rows = await query(
       `SELECT * FROM tasks 
        WHERE deadline >= ? AND deadline < ? 
        ORDER BY deadline ASC`,
-      [today.toISOString(), tomorrow.toISOString()]
-    );
+      [todayFormatted, tomorrowFormatted]
+    ) as Record<string, any>[];
     
     return rows.map(rowToTask);
   },
   
   async getOverdueTasks(): Promise<Task[]> {
-    const now = new Date().toISOString();
+    const now = new Date();
+    const nowFormatted = formatDateForMySQL(now);
     
     const rows = await query(
       `SELECT * FROM tasks 
        WHERE deadline < ? AND status != ? 
        ORDER BY deadline ASC`,
-      [now, TaskStatus.DONE]
-    );
+      [nowFormatted, TaskStatus.DONE]
+    ) as Record<string, any>[];
     
     return rows.map(rowToTask);
   }

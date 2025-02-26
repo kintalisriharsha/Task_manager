@@ -1,29 +1,30 @@
-import express from 'express';
-import cors from 'cors';
-import taskRoutes from './routes/taskRoutes';
-import streamRoutes from './routes/streamRoutes';
-import { notFound, errorHandler } from './middleware/errorMiddleware';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const app = express();
+import app from './app';
+import { TaskModel } from './models/taskModel';
+import { connectDatabase } from './db/database';
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000'
-}));
+const PORT = process.env.PORT || 5000;
 
-// Routes with API prefix
-app.use('/api/tasks', taskRoutes);
-app.use('/api/streaming', streamRoutes);
+// Initialize database and start server
+(async () => {
+  try {
+    // Connect to the database first
+    await connectDatabase();
+    console.log('Database initialized successfully');
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('Task Manager API is running');
-});
+    // Check for timeouts every minute
+    setInterval(() => {
+      console.log('Checking for task timeouts...');
+      TaskModel.checkTimeouts();
+    }, 60000);
 
-// Error handling
-app.use(notFound);
-app.use(errorHandler);
-
-export default app;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+})();

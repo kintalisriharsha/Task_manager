@@ -52,7 +52,7 @@ export const initDatabase = async (): Promise<mysql.Pool> => {
       )
     `);
 
-    console.log('Database initialized successfully');
+    console.log('Database tables initialized successfully');
     return pool;
   } catch (error) {
     console.error('Database initialization error:', error);
