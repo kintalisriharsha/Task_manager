@@ -131,7 +131,7 @@ export const TaskModel = {
     // Format dates for MySQL
     const createdAtFormatted = formatDateForMySQL(newTask.createdAt);
     const updatedAtFormatted = formatDateForMySQL(newTask.updatedAt);
-    let deadlineFormatted = null;
+    let deadlineFormatted: string | null = null;
     
     if (newTask.deadline) {
       deadlineFormatted = formatDateForMySQL(newTask.deadline);

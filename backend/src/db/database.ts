@@ -19,11 +19,11 @@ type DatabaseType = 'mysql' | 'sqlite';
 // Configuration
 const DB_TYPE: DatabaseType = (process.env.DB_TYPE || 'sqlite') as DatabaseType;
 const MYSQL_CONFIG = {
-  host: process.env.DB_HOST || 'caboose.proxy.rlwy.net',
+  host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'pGHUGULgUogWbrfozMrDhnnVagRUNFqH',
-  database: process.env.DB_NAME || 'railway',
-  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 29933,
+  password: process.env.DB_PASSWORD || 'harsha@019',
+  database: process.env.DB_NAME || 'task_manager',
+  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
