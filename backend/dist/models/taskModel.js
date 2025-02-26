@@ -46,6 +46,10 @@ const rowToStreamData = (row) => {
         startedAt: new Date(row.started_at)
     };
 };
+// Format date for MySQL (YYYY-MM-DD HH:MM:SS)
+const formatDateForMySQL = (date) => {
+    return date.toISOString().slice(0, 19).replace('T', ' ');
+};
 exports.TaskModel = {
     findAll() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -89,6 +93,13 @@ exports.TaskModel = {
             const now = new Date();
             const id = (0, uuid_1.v4)();
             const newTask = Object.assign(Object.assign({ id }, taskData), { createdAt: now, updatedAt: now, isTimeout: false });
+            // Format dates for MySQL
+            const createdAtFormatted = formatDateForMySQL(newTask.createdAt);
+            const updatedAtFormatted = formatDateForMySQL(newTask.updatedAt);
+            let deadlineFormatted = null;
+            if (newTask.deadline) {
+                deadlineFormatted = formatDateForMySQL(newTask.deadline);
+            }
             // Insert task
             yield (0, database_1.query)(`INSERT INTO tasks (id, title, description, status, created_at, updated_at, duration, deadline, is_timeout) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
@@ -96,10 +107,10 @@ exports.TaskModel = {
                 newTask.title,
                 newTask.description,
                 newTask.status,
-                newTask.createdAt.toISOString(),
-                newTask.updatedAt.toISOString(),
+                createdAtFormatted,
+                updatedAtFormatted,
                 newTask.duration,
-                newTask.deadline ? newTask.deadline.toISOString() : null,
+                deadlineFormatted,
                 0 // is_timeout false
             ]);
             return newTask;
@@ -134,10 +145,10 @@ exports.TaskModel = {
             }
             if ('deadline' in taskData) {
                 updates.push('deadline = ?');
-                values.push(taskData.deadline ? taskData.deadline.toISOString() : null);
+                values.push(taskData.deadline ? formatDateForMySQL(taskData.deadline) : null);
             }
             updates.push('updated_at = ?');
-            values.push(updatedTask.updatedAt.toISOString());
+            values.push(formatDateForMySQL(updatedTask.updatedAt));
             // Add the ID for the WHERE clause
             values.push(id);
             // Execute update
@@ -160,13 +171,14 @@ exports.TaskModel = {
     },
     checkTimeouts() {
         return __awaiter(this, void 0, void 0, function* () {
-            const now = new Date().toISOString();
+            const now = new Date();
+            const nowFormatted = formatDateForMySQL(now);
             // Find tasks that should be marked as timeout
             yield (0, database_1.query)(`UPDATE tasks 
        SET status = ?, is_timeout = 1, updated_at = ? 
        WHERE deadline < ? 
        AND status != ? 
-       AND is_timeout = 0`, [TaskStatus.TIMEOUT, now, now, TaskStatus.DONE]);
+       AND is_timeout = 0`, [TaskStatus.TIMEOUT, nowFormatted, nowFormatted, TaskStatus.DONE]);
         });
     },
     findByStatus(status) {
@@ -194,13 +206,14 @@ exports.TaskModel = {
             yield (0, database_1.query)('DELETE FROM stream_data WHERE task_id = ?', [taskId]);
             // Create new stream data
             const streamId = (0, uuid_1.v4)();
+            const startedAtFormatted = formatDateForMySQL(streamData.startedAt);
             yield (0, database_1.query)(`INSERT INTO stream_data (id, task_id, name, viewer_count, started_at)
        VALUES (?, ?, ?, ?, ?)`, [
                 streamId,
                 taskId,
                 streamData.name,
                 streamData.viewerCount,
-                streamData.startedAt.toISOString()
+                startedAtFormatted
             ]);
             // Return updated task with stream data
             task.streamData = Object.assign({ id: streamId, taskId }, streamData);
@@ -222,8 +235,9 @@ exports.TaskModel = {
     },
     getTotalDuration() {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const result = yield (0, database_1.query)('SELECT SUM(duration) as total FROM tasks');
-            return result[0].total || 0;
+            return ((_a = result[0]) === null || _a === void 0 ? void 0 : _a.total) || 0;
         });
     },
     getTasksDueToday() {
@@ -232,18 +246,21 @@ exports.TaskModel = {
             today.setHours(0, 0, 0, 0);
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
+            const todayFormatted = formatDateForMySQL(today);
+            const tomorrowFormatted = formatDateForMySQL(tomorrow);
             const rows = yield (0, database_1.query)(`SELECT * FROM tasks 
        WHERE deadline >= ? AND deadline < ? 
-       ORDER BY deadline ASC`, [today.toISOString(), tomorrow.toISOString()]);
+       ORDER BY deadline ASC`, [todayFormatted, tomorrowFormatted]);
             return rows.map(rowToTask);
         });
     },
     getOverdueTasks() {
         return __awaiter(this, void 0, void 0, function* () {
-            const now = new Date().toISOString();
+            const now = new Date();
+            const nowFormatted = formatDateForMySQL(now);
             const rows = yield (0, database_1.query)(`SELECT * FROM tasks 
        WHERE deadline < ? AND status != ? 
-       ORDER BY deadline ASC`, [now, TaskStatus.DONE]);
+       ORDER BY deadline ASC`, [nowFormatted, TaskStatus.DONE]);
             return rows.map(rowToTask);
         });
     }

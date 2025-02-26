@@ -60,7 +60,7 @@ const initDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
         FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
       )
     `);
-        console.log('Database initialized successfully');
+        console.log('Database tables initialized successfully');
         return pool;
     }
     catch (error) {
