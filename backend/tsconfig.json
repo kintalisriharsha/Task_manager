@@ -3,9 +3,10 @@
     /* Base Options */
     "target": "es2020",                                  /* Set the JavaScript language version for emitted JavaScript */
     "module": "commonjs",                                /* Specify what module code is generated */
-    "lib": ["es2020"],                                   /* Specify library files to be included in the compilation */
+    "lib": ["es2020", "dom", "esnext"],                  /* Specify library files to be included in the compilation */
     "outDir": "./dist",                                  /* Specify an output folder for all emitted files */
     "rootDir": "./src",                                  /* Specify the root folder within your source files */
+    "types": ["node"],                                   /* Type declarations to be included in the compilation */
     
     /* Type Checking */
     "strict": true,                                      /* Enable all strict type-checking options */

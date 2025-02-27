@@ -1,5 +1,7 @@
 // src/utils/timeoutChecker.ts
 import { Task, TaskStatus } from '../models/taskModel';
+// Add node types for setTimeout, setInterval, and NodeJS namespace
+import { setInterval } from 'node:timers';
 
 // Check if task has timed out
 export const isTaskTimedOut = (task: Task): boolean => {

@@ -35,7 +35,7 @@ app.use("/tasks", taskRoutes);
 app.use("/streaming", streamRoutes);
 
 // Base route
-app.get("/", (_req, res) => {
+app.get("/", (req, res) => {
   res.json({
     message: "Task Management API",
     version: "1.0.0",
@@ -46,7 +46,7 @@ app.get("/", (_req, res) => {
 });
 
 // Health check endpoint
-app.get("/health", (_req, res) => {
+app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
     uptime: process.uptime(),
