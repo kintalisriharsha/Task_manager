@@ -7,6 +7,7 @@
     "outDir": "./dist",                                  /* Specify an output folder for all emitted files */
     "rootDir": "./src",                                  /* Specify the root folder within your source files */
     "types": ["node"],                                   /* Type declarations to be included in the compilation */
+    "typeRoots": ["./node_modules/@types"],              /* List of folders to include type definitions from */
     
     /* Type Checking */
     "strict": true,                                      /* Enable all strict type-checking options */
