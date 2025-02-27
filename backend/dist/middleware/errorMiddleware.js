@@ -10,7 +10,7 @@ const notFound = (req, res, next) => {
 };
 exports.notFound = notFound;
 // Handle all other errors
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, _req, res, _next) => {
     const statusCode = err.statusCode || res.statusCode || 500;
     res.status(statusCode).json({
         message: err.message,
@@ -18,3 +18,4 @@ const errorHandler = (err, req, res, next) => {
     });
 };
 exports.errorHandler = errorHandler;
+//# sourceMappingURL=errorMiddleware.js.map

@@ -1,36 +1,101 @@
+// src/middleware/validationMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
 import { TaskStatus } from '../models/taskModel';
-import { AppError } from '../utils/errorHandler';
 
-export const validateTaskInput = (req: Request, res: Response, next: NextFunction) => {
-  const { title, description } = req.body;
-  
+// Validate task creation request
+export const validateTaskCreation = (req: Request, res: Response, next: NextFunction): void => {
+  const { title, description, status, duration, deadline } = req.body;
+  const errors: string[] = [];
+
+  // Required fields
   if (!title || title.trim() === '') {
-    return next(new AppError('Title is required', 400));
+    errors.push('Title is required');
   }
-  
+
   if (!description || description.trim() === '') {
-    return next(new AppError('Description is required', 400));
+    errors.push('Description is required');
   }
-  
+
+  // Status validation
+  if (status && !Object.values(TaskStatus).includes(status)) {
+    errors.push('Invalid status value');
+  }
+
+  // Duration validation
+  if (duration !== undefined) {
+    if (isNaN(duration) || duration <= 0) {
+      errors.push('Duration must be a positive number');
+    }
+  }
+
+  // Deadline validation
+  if (deadline) {
+    const deadlineDate = new Date(deadline);
+    if (deadlineDate.toString() === 'Invalid Date') {
+      errors.push('Invalid deadline date format');
+    }
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({ message: 'Validation failed', errors });
+    return;
+  }
+
   next();
 };
 
-export const validateTaskStatus = (req: Request, res: Response, next: NextFunction) => {
-  const { status } = req.body;
-  
-  if (status && !Object.values(TaskStatus).includes(status as TaskStatus)) {
-    return next(new AppError('Invalid task status', 400));
+// Validate task update request
+export const validateTaskUpdate = (req: Request, res: Response, next: NextFunction): void => {
+  const { status, duration, deadline } = req.body;
+  const errors: string[] = [];
+
+  // Status validation
+  if (status && !Object.values(TaskStatus).includes(status)) {
+    errors.push('Invalid status value');
   }
-  
+
+  // Duration validation
+  if (duration !== undefined) {
+    if (isNaN(duration) || duration <= 0) {
+      errors.push('Duration must be a positive number');
+    }
+  }
+
+  // Deadline validation
+  if (deadline) {
+    const deadlineDate = new Date(deadline);
+    if (deadlineDate.toString() === 'Invalid Date') {
+      errors.push('Invalid deadline date format');
+    }
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({ message: 'Validation failed', errors });
+    return;
+  }
+
   next();
 };
 
-export const validateTaskId = (req: Request, res: Response, next: NextFunction) => {
+// Validate ID parameter
+export const validateIdParam = (req: Request, res: Response, next: NextFunction): void => {
   const { id } = req.params;
   
-  if (!id || typeof id !== 'string') {
-    return next(new AppError('Invalid task ID', 400));
+  if (!id || id.trim() === '') {
+    res.status(400).json({ message: 'Invalid ID parameter' });
+    return;
+  }
+  
+  next();
+};
+
+// Validate task ID query parameter
+export const validateTaskIdQuery = (req: Request, res: Response, next: NextFunction): void => {
+  const { taskId } = req.query;
+  
+  if (!taskId || typeof taskId !== 'string' || taskId.trim() === '') {
+    res.status(400).json({ message: 'taskId query parameter is required' });
+    return;
   }
   
   next();

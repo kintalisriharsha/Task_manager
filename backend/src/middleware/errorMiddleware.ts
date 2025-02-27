@@ -17,9 +17,9 @@ export const notFound = (req: Request, res: Response, next: NextFunction): void 
 // Handle all other errors
 export const errorHandler = (
   err: AppError,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
   const statusCode = err.statusCode || res.statusCode || 500;
   

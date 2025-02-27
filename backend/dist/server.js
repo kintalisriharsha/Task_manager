@@ -1,40 +1,52 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-const app_1 = __importDefault(require("./app"));
-const taskModel_1 = require("./models/taskModel");
-const database_1 = require("./db/database");
-const PORT = process.env.PORT || 5000;
-// Initialize database and start server
-(() => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        // Connect to the database first
-        yield (0, database_1.connectDatabase)();
-        console.log('Database initialized successfully');
-        // Check for timeouts every minute
-        setInterval(() => {
-            console.log('Checking for task timeouts...');
-            taskModel_1.TaskModel.checkTimeouts();
-        }, 60000);
-        app_1.default.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-        });
-    }
-    catch (error) {
-        console.error('Failed to start server:', error);
+const tslib_1 = require("tslib");
+// src/server.ts
+const app_1 = tslib_1.__importDefault(require("./app"));
+const env_1 = require("./config/env");
+const taskService_1 = tslib_1.__importDefault(require("./services/taskService"));
+const timeoutChecker_1 = require("./utils/timeoutChecker");
+// Validate environment variables
+(0, env_1.validateEnv)();
+// Log application startup
+console.log(`Starting Task Management API in ${env_1.env.NODE_ENV} mode`);
+// Schedule task timeout checking (every minute)
+const timeoutCheckInterval = (0, timeoutChecker_1.scheduleTimeoutChecking)(() => {
+    console.log('[Scheduler] Checking for task timeouts...');
+    taskService_1.default.checkTimeouts();
+}, 60000);
+// Start server
+const server = app_1.default.listen(env_1.env.PORT, () => {
+    console.log(`Server running on port ${env_1.env.PORT}`);
+    console.log(`API is available at http://localhost:${env_1.env.PORT}`);
+});
+// Handle graceful shutdown
+const gracefulShutdown = () => {
+    console.log('Shutting down gracefully...');
+    // Clear the timeout checking interval
+    clearInterval(timeoutCheckInterval);
+    // Close the HTTP server
+    server.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+    });
+    // Force close after 10 seconds if graceful shutdown fails
+    setTimeout(() => {
+        console.error('Could not close connections in time, forcefully shutting down');
         process.exit(1);
-    }
-}))();
+    }, 10000);
+};
+// Listen for termination signals
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    gracefulShutdown();
+});
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    gracefulShutdown();
+});
+//# sourceMappingURL=server.js.map

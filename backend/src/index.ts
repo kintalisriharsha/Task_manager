@@ -1,43 +1,22 @@
 // src/index.ts
+/**
+ * Task Management API Entry Point
+ * 
+ * This file serves as the main entry point for the application.
+ * It imports the server module which initializes and runs the Express app.
+ */
 
-import dotenv from 'dotenv';
-dotenv.config();
+import './server';
 
-import app from './app';
-import { TaskModel } from './models/taskModel';
-import { connectDatabase } from './db/database';
+/**
+ * Export model and type definitions for use in other projects
+ * This allows the API to be imported as a module by other applications
+ */
+export { Task, TaskStatus, StreamData } from './models/taskModel';
 
-const PORT = process.env.PORT || 5000;
-
-// Initialize database and start server
-(async () => {
-  try {
-    // Connect to the database first
-    await connectDatabase();
-    console.log('Database initialized successfully');
-
-    // Check for timeouts every minute
-    setInterval(() => {
-      console.log('Checking for task timeouts...');
-      TaskModel.checkTimeouts();
-    }, 60000);
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-
-    // Handle graceful shutdown
-    process.on('SIGINT', async () => {
-      console.log('Shutting down server...');
-      process.exit(0);
-    });
-
-    process.on('SIGTERM', async () => {
-      console.log('Shutting down server...');
-      process.exit(0);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-})();
+/**
+ * This structure allows the application to be started in two ways:
+ * 
+ * 1. Direct execution: `node dist/index.js` or `npm start`
+ * 2. Import as a module: `import { Task, TaskStatus } from 'task-management-api'`
+ */

@@ -1,6 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
-import { query } from '../db/database';
-
+// src/models/taskModel.ts
 export enum TaskStatus {
   TODO = "To Do",
   IN_PROGRESS = "In Progress",
@@ -10,7 +8,6 @@ export enum TaskStatus {
 
 export interface StreamData {
   id: string;
-  taskId?: string;
   name: string;
   viewerCount: number;
   startedAt: Date;
@@ -29,324 +26,156 @@ export interface Task {
   streamData?: StreamData;
 }
 
-// Type for creating a new task
-type TaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isTimeout' | 'streamData'>;
+// In-memory database store
+const tasks: Task[] = [];
 
-// Helper to convert DB row to Task
-const rowToTask = (row: any): Task => {
-  const task: Task = {
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    status: row.status as TaskStatus,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
-    duration: row.duration,
-    isTimeout: Boolean(row.is_timeout)
-  };
-
-  if (row.deadline) {
-    task.deadline = new Date(row.deadline);
-  }
-
-  return task;
+// Add some sample tasks
+const addSampleTasks = () => {
+  const now = new Date();
+  
+  // Tomorrow's date
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  // Next week
+  const nextWeek = new Date(now);
+  nextWeek.setDate(now.getDate() + 7);
+  
+  // Yesterday (for timeout testing)
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  
+  const sampleTasks = [
+    {
+      title: "Research project requirements",
+      description: "Gather information about project requirements and create documentation",
+      status: TaskStatus.TODO,
+      duration: 120,
+      deadline: tomorrow
+    },
+    {
+      title: "Design user interface",
+      description: "Create wireframes and mockups for the new application",
+      status: TaskStatus.IN_PROGRESS,
+      duration: 180,
+      deadline: nextWeek
+    },
+    {
+      title: "Fix login bug",
+      description: "Debug and fix the login authentication issue reported by users",
+      status: TaskStatus.DONE,
+      duration: 60
+    },
+    {
+      title: "Update documentation",
+      description: "Update the user documentation with new feature descriptions",
+      status: TaskStatus.TODO,
+      duration: 90,
+      deadline: yesterday // This will be marked as timeout
+    },
+    {
+      title: "Weekly team meeting",
+      description: "Discuss project progress and next steps with the team",
+      status: TaskStatus.IN_PROGRESS,
+      duration: 45,
+      deadline: tomorrow
+    }
+  ];
+  
+  // Add sample tasks to the store
+  sampleTasks.forEach(task => {
+    TaskModel.create(task);
+  });
+  
+  console.log(`Added ${sampleTasks.length} sample tasks`);
 };
 
-// Helper to convert DB row to StreamData
-const rowToStreamData = (row: any): StreamData => {
-  return {
-    id: row.id,
-    taskId: row.task_id,
-    name: row.name,
-    viewerCount: row.viewer_count,
-    startedAt: new Date(row.started_at)
-  };
+// Helper to generate a random ID
+const generateId = (): string => {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 };
 
-// Format date for MySQL (YYYY-MM-DD HH:MM:SS)
-const formatDateForMySQL = (date: Date): string => {
-  return date.toISOString().slice(0, 19).replace('T', ' ');
-};
-
+// TaskModel with CRUD operations
 export const TaskModel = {
-  async findAll(): Promise<Task[]> {
-    // Get all tasks
-    const taskRows = await query(
-      'SELECT * FROM tasks ORDER BY created_at DESC'
-    ) as Record<string, any>[];
-    
-    // Get all stream data
-    const streamRows = await query('SELECT * FROM stream_data') as Record<string, any>[];
-    
-    // Map stream data by task_id for easy lookup
-    interface StreamDataMap {
-      [taskId: string]: StreamData;
-    }
-    
-    const streamByTaskId = streamRows.reduce((acc: StreamDataMap, stream: any) => {
-      if (stream.task_id) {
-        acc[stream.task_id] = rowToStreamData(stream);
-      }
-      return acc;
-    }, {} as StreamDataMap);
-    
-    // Map tasks and attach stream data if available
-    return taskRows.map((row: Record<string, any>): Task => {
-      const task: Task = rowToTask(row);
-      if (streamByTaskId[task.id]) {
-        task.streamData = streamByTaskId[task.id];
-      }
-      return task;
-    });
-  },
-  
-  async findById(id: string): Promise<Task | undefined> {
-    // Get task
-    const rows = await query('SELECT * FROM tasks WHERE id = ?', [id]) as Record<string, any>[];
-    if (rows.length === 0) return undefined;
-    
-    const task = rowToTask(rows[0]);
-    
-    // Get stream data if exists
-    const streamRows = await query('SELECT * FROM stream_data WHERE task_id = ?', [id]) as Record<string, any>[];
-    if (streamRows.length > 0) {
-      task.streamData = rowToStreamData(streamRows[0]);
-    }
-    
-    return task;
-  },
-  
-  async create(taskData: TaskInput): Promise<Task> {
+  create: (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isTimeout'>): Task => {
     const now = new Date();
-    const id = uuidv4();
     
     const newTask: Task = {
-      id,
+      id: generateId(),
       ...taskData,
       createdAt: now,
       updatedAt: now,
       isTimeout: false
     };
     
-    // Format dates for MySQL
-    const createdAtFormatted = formatDateForMySQL(newTask.createdAt);
-    const updatedAtFormatted = formatDateForMySQL(newTask.updatedAt);
-    let deadlineFormatted: string | null = null;
-    
-    if (newTask.deadline) {
-      deadlineFormatted = formatDateForMySQL(newTask.deadline);
-    }
-    
-    // Insert task
-    await query(
-      `INSERT INTO tasks (id, title, description, status, created_at, updated_at, duration, deadline, is_timeout) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        newTask.id,
-        newTask.title,
-        newTask.description,
-        newTask.status,
-        createdAtFormatted,
-        updatedAtFormatted,
-        newTask.duration,
-        deadlineFormatted,
-        0 // is_timeout false
-      ]
-    );
-    
+    tasks.push(newTask);
     return newTask;
   },
   
-  async update(id: string, taskData: Partial<TaskInput>): Promise<Task | undefined> {
-    // Check if task exists
-    const existingTask = await this.findById(id);
-    if (!existingTask) return undefined;
+  findAll: (): Task[] => {
+    return [...tasks];
+  },
+  
+  findById: (id: string): Task | undefined => {
+    return tasks.find(task => task.id === id);
+  },
+  
+  update: (id: string, taskData: Partial<Task>): Task | undefined => {
+    const index = tasks.findIndex(task => task.id === id);
     
-    // Prepare update data
+    if (index === -1) {
+      return undefined;
+    }
+    
     const updatedTask: Task = {
-      ...existingTask,
+      ...tasks[index],
       ...taskData,
       updatedAt: new Date()
-    };
+    } as Task;
     
-    // Build dynamic SQL update query
-    const updates: string[] = [];
-    const values: any[] = [];
-    
-    if (taskData.title !== undefined) {
-      updates.push('title = ?');
-      values.push(taskData.title);
+    // If task is marked as done, it's no longer in timeout
+    if (taskData.status === TaskStatus.DONE) {
+      updatedTask.isTimeout = false;
     }
     
-    if (taskData.description !== undefined) {
-      updates.push('description = ?');
-      values.push(taskData.description);
-    }
-    
-    if (taskData.status !== undefined) {
-      updates.push('status = ?');
-      values.push(taskData.status);
-    }
-    
-    if (taskData.duration !== undefined) {
-      updates.push('duration = ?');
-      values.push(taskData.duration);
-    }
-    
-    if ('deadline' in taskData) {
-      updates.push('deadline = ?');
-      values.push(taskData.deadline ? formatDateForMySQL(taskData.deadline) : null);
-    }
-    
-    updates.push('updated_at = ?');
-    values.push(formatDateForMySQL(updatedTask.updatedAt));
-    
-    // Add the ID for the WHERE clause
-    values.push(id);
-    
-    // Execute update
-    if (updates.length > 0) {
-      await query(
-        `UPDATE tasks SET ${updates.join(', ')} WHERE id = ?`,
-        values
-      );
-    }
-    
+    tasks[index] = updatedTask;
     return updatedTask;
   },
   
-  async delete(id: string): Promise<boolean> {
-    // Check if task exists
-    const existingTask = await this.findById(id);
-    if (!existingTask) return false;
+  delete: (id: string): boolean => {
+    const index = tasks.findIndex(task => task.id === id);
     
-    // Delete task (stream data will be deleted via cascade)
-    await query('DELETE FROM tasks WHERE id = ?', [id]);
+    if (index === -1) {
+      return false;
+    }
     
+    tasks.splice(index, 1);
     return true;
   },
   
-  async checkTimeouts(): Promise<void> {
+  checkTimeouts: (): void => {
     const now = new Date();
-    const nowFormatted = formatDateForMySQL(now);
     
-    // Find tasks that should be marked as timeout
-    await query(
-      `UPDATE tasks 
-       SET status = ?, is_timeout = 1, updated_at = ? 
-       WHERE deadline < ? 
-       AND status != ? 
-       AND is_timeout = 0`,
-      [TaskStatus.TIMEOUT, nowFormatted, nowFormatted, TaskStatus.DONE]
-    );
-  },
-  
-  async findByStatus(status: TaskStatus): Promise<Task[]> {
-    const rows = await query(
-      'SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC',
-      [status]
-    ) as Record<string, any>[];
-    
-    // Map rows to Task objects
-    const tasks = rows.map(rowToTask);
-    
-    // Get stream data for all tasks
-    for (const task of tasks) {
-      const streamRows = await query(
-        'SELECT * FROM stream_data WHERE task_id = ?',
-        [task.id]
-      ) as Record<string, any>[];
-      
-      if (streamRows.length > 0) {
-        task.streamData = rowToStreamData(streamRows[0]);
+    tasks.forEach(task => {
+      if (
+        task.deadline &&
+        new Date(task.deadline) < now &&
+        task.status !== TaskStatus.DONE &&
+        !task.isTimeout
+      ) {
+        task.status = TaskStatus.TIMEOUT;
+        task.isTimeout = true;
+        task.updatedAt = new Date();
+        console.log(`Task "${task.title}" marked as timeout`);
       }
-    }
-    
-    return tasks;
-  },
-  
-  async addStreamData(taskId: string, streamData: Omit<StreamData, 'id' | 'taskId'>): Promise<Task | undefined> {
-    // Check if task exists
-    const task = await this.findById(taskId);
-    if (!task) return undefined;
-    
-    // Remove any existing stream data for this task
-    await query('DELETE FROM stream_data WHERE task_id = ?', [taskId]);
-    
-    // Create new stream data
-    const streamId = uuidv4();
-    const startedAtFormatted = formatDateForMySQL(streamData.startedAt);
-    
-    await query(
-      `INSERT INTO stream_data (id, task_id, name, viewer_count, started_at)
-       VALUES (?, ?, ?, ?, ?)`,
-      [
-        streamId,
-        taskId,
-        streamData.name,
-        streamData.viewerCount,
-        startedAtFormatted
-      ]
-    );
-    
-    // Return updated task with stream data
-    task.streamData = {
-      id: streamId,
-      taskId,
-      ...streamData
-    };
-    
-    return task;
-  },
-  
-  async removeStreamData(taskId: string): Promise<Task | undefined> {
-    // Check if task exists
-    const task = await this.findById(taskId);
-    if (!task) return undefined;
-    
-    // Remove stream data
-    await query('DELETE FROM stream_data WHERE task_id = ?', [taskId]);
-    
-    // Return updated task without stream data
-    delete task.streamData;
-    return task;
-  },
-  
-  async getTotalDuration(): Promise<number> {
-    const result = await query('SELECT SUM(duration) as total FROM tasks') as Array<{total: number}>;
-    return result[0]?.total || 0;
-  },
-  
-  async getTasksDueToday(): Promise<Task[]> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const todayFormatted = formatDateForMySQL(today);
-    const tomorrowFormatted = formatDateForMySQL(tomorrow);
-    
-    const rows = await query(
-      `SELECT * FROM tasks 
-       WHERE deadline >= ? AND deadline < ? 
-       ORDER BY deadline ASC`,
-      [todayFormatted, tomorrowFormatted]
-    ) as Record<string, any>[];
-    
-    return rows.map(rowToTask);
-  },
-  
-  async getOverdueTasks(): Promise<Task[]> {
-    const now = new Date();
-    const nowFormatted = formatDateForMySQL(now);
-    
-    const rows = await query(
-      `SELECT * FROM tasks 
-       WHERE deadline < ? AND status != ? 
-       ORDER BY deadline ASC`,
-      [nowFormatted, TaskStatus.DONE]
-    ) as Record<string, any>[];
-    
-    return rows.map(rowToTask);
+    });
   }
 };
+
+// Initialize with sample data
+addSampleTasks();
+
+// Run timeout check on startup
+TaskModel.checkTimeouts();
+
+export default TaskModel;
