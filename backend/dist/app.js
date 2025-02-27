@@ -15,35 +15,35 @@ const app = (0, express_1.default)();
 // Security middleware
 app.use((0, helmet_1.default)());
 // Logging middleware
-app.use((0, morgan_1.default)(env_1.env.NODE_ENV === 'development' ? 'dev' : 'combined'));
+app.use((0, morgan_1.default)(env_1.env.NODE_ENV === "development" ? "dev" : "combined"));
 // Body parsing middleware
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 // CORS middleware
 app.use((0, cors_1.default)({
     origin: env_1.env.CORS_ORIGIN,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
 }));
 // API Routes
-app.use('/tasks', taskRoutes_1.default);
-app.use('/streaming', streamRoutes_1.default);
+app.use("/tasks", taskRoutes_1.default);
+app.use("/streaming", streamRoutes_1.default);
 // Base route
-app.get('/', (_req, res) => {
+app.get("/", (_req, res) => {
     res.json({
-        message: 'Task Management API',
-        version: '1.0.0',
-        status: 'ok',
+        message: "Task Management API",
+        version: "1.0.0",
+        status: "ok",
         environment: env_1.env.NODE_ENV,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     });
 });
 // Health check endpoint
-app.get('/health', (_req, res) => {
+app.get("/health", (_req, res) => {
     res.status(200).json({
-        status: 'ok',
+        status: "ok",
         uptime: process.uptime(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     });
 });
 // Error handling middleware
