@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
     /* Base Options */
-    "target": "es2020",                                  /* Set the JavaScript language version for emitted JavaScript */
+    "target": "ES2015",                                  /* Set the JavaScript language version for emitted JavaScript */
     "module": "commonjs",                                /* Specify what module code is generated */
-    "lib": ["es2020", "dom", "esnext"],                  /* Specify library files to be included in the compilation */
+    "lib": ["ES2015", "dom", "esnext"],                  /* Specify library files to be included in the compilation */
     "outDir": "./dist",                                  /* Specify an output folder for all emitted files */
-    "rootDir": "./src",                                  /* Specify the root folder within your source files */                             /* Type declarations to be included in the compilation */
+    "rootDir": "./src",                                  /* Specify the root folder within your source files */
+    "types": ["node"],               /* Type declarations to be included in the compilation */
     "typeRoots": ["./node_modules/@types"],              /* List of folders to include type definitions from */
     
     /* Type Checking */
